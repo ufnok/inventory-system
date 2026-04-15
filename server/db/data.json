@@ -1,0 +1,324 @@
+{
+  "sequence": {
+    "SP": {
+      "v": 0,
+      "d": ""
+    },
+    "GYS": {
+      "v": 0,
+      "d": ""
+    },
+    "KH": {
+      "v": 0,
+      "d": ""
+    },
+    "RK": {
+      "v": 0,
+      "d": ""
+    },
+    "CK": {
+      "v": 0,
+      "d": ""
+    },
+    "PD": {
+      "v": 0,
+      "d": ""
+    },
+    "USR": {
+      "v": 0,
+      "d": ""
+    }
+  },
+  "role": [
+    {
+      "id": 1,
+      "role_name": "管理员",
+      "role_code": "admin",
+      "description": "系统管理员",
+      "status": 1,
+      "created_at": "2026-04-15T01:15:37.413Z"
+    },
+    {
+      "id": 2,
+      "role_name": "仓库管理员",
+      "role_code": "warehouse_admin",
+      "description": "仓库管理员",
+      "status": 1,
+      "created_at": "2026-04-15T01:15:37.413Z"
+    },
+    {
+      "id": 3,
+      "role_name": "销售人员",
+      "role_code": "sales",
+      "description": "销售人员",
+      "status": 1,
+      "created_at": "2026-04-15T01:15:37.413Z"
+    },
+    {
+      "id": 4,
+      "role_name": "采购人员",
+      "role_code": "purchaser",
+      "description": "采购人员",
+      "status": 1,
+      "created_at": "2026-04-15T01:15:37.413Z"
+    },
+    {
+      "id": 5,
+      "role_name": "财务人员",
+      "role_code": "finance",
+      "description": "财务人员",
+      "status": 1,
+      "created_at": "2026-04-15T01:15:37.413Z"
+    }
+  ],
+  "user": [
+    {
+      "id": "USR000001",
+      "username": "admin",
+      "password": "$2a$10$UCFVZP7XIn8M2C5tRSh9b.eYzGJQU8H4gL.nyfQY0hsfaLFyAuoFa",
+      "real_name": "系统管理员",
+      "role_id": 1,
+      "phone": "",
+      "email": "",
+      "status": 1,
+      "last_login": null,
+      "created_at": "2026-04-15T01:15:37.497Z"
+    }
+  ],
+  "category": [],
+  "product": [],
+  "supplier": [],
+  "customer": [],
+  "inventory": [],
+  "stock_in_order": [],
+  "stock_in_item": [],
+  "stock_out_order": [],
+  "stock_out_item": [],
+  "inventory_log": [],
+  "check_order": [],
+  "check_item": [],
+  "operation_log": [],
+  "tables": {
+    "category": [
+      {
+        "id": 1776229693619,
+        "pid": 0,
+        "name": "商品分类1",
+        "sortOrder": 0,
+        "createdAt": "2026-04-15T05:08:13.619Z"
+      }
+    ],
+    "product": [
+      {
+        "id": "SP000001",
+        "name": "貌似还行",
+        "spec": "",
+        "unit": "123",
+        "costPrice": 1,
+        "salePrice": 1,
+        "categoryId": 1776229693619,
+        "remark": "",
+        "status": 1,
+        "createdAt": "2026-04-15T05:08:33.592Z",
+        "updatedAt": null
+      }
+    ],
+    "supplier": [
+      {
+        "id": "GYS000001",
+        "name": "供应商1",
+        "contact": "1",
+        "phone": "1",
+        "address": "1",
+        "remark": "12",
+        "status": 1,
+        "createdAt": "2026-04-15T05:08:49.097Z",
+        "updatedAt": null
+      }
+    ],
+    "customer": [
+      {
+        "id": "KH000001",
+        "name": "张三",
+        "contact": "123",
+        "phone": "456",
+        "address": "123",
+        "remark": "",
+        "status": 1,
+        "createdAt": "2026-04-15T05:09:34.913Z",
+        "updatedAt": null
+      }
+    ],
+    "inventory": [],
+    "stockInOrder": [
+      {
+        "id": "RK260415001",
+        "supplierId": "GYS000001",
+        "inTime": "2026-04-15 05:09:02",
+        "operatorId": "USR000001",
+        "totalAmount": 1,
+        "status": 0,
+        "remark": "",
+        "createdAt": "2026-04-15T05:09:15.964Z",
+        "updatedAt": null
+      }
+    ],
+    "stockInItem": [
+      {
+        "id": 1776229755964.8923,
+        "orderId": "RK260415001",
+        "productId": "SP000001",
+        "quantity": 1,
+        "unitPrice": 1,
+        "amount": 1,
+        "createdAt": "2026-04-15T05:09:15.964Z"
+      }
+    ],
+    "stockOutOrder": [
+      {
+        "id": "CK260415001",
+        "customerId": "KH000001",
+        "outTime": "2026-04-15 05:09:37",
+        "operatorId": "USR000001",
+        "totalAmount": 2,
+        "status": 0,
+        "remark": "",
+        "createdAt": "2026-04-15T05:09:50.134Z",
+        "updatedAt": null
+      }
+    ],
+    "stockOutItem": [
+      {
+        "id": 1776229790134.773,
+        "orderId": "CK260415001",
+        "productId": "SP000001",
+        "quantity": 2,
+        "unitPrice": 1,
+        "amount": 2,
+        "createdAt": "2026-04-15T05:09:50.134Z"
+      }
+    ],
+    "inventoryLog": [],
+    "checkOrder": [],
+    "checkItem": [],
+    "user": [
+      {
+        "id": "USR000001",
+        "username": "admin",
+        "password": "$2a$10$04SK1JrXy5rwqiojzjlEZu9j/QhubvtQYM33DkKfO3qGIlLg/VvAS",
+        "realName": "系统管理员",
+        "roleId": 1,
+        "phone": "",
+        "email": "",
+        "status": 1,
+        "lastLogin": "2026-04-15T05:07:43.459Z",
+        "createdAt": "2026-04-15T02:03:11.517Z"
+      }
+    ],
+    "role": [
+      {
+        "id": 1,
+        "roleName": "管理员",
+        "roleCode": "admin",
+        "description": "系统管理员，拥有全部权限",
+        "status": 1,
+        "createdAt": "2026-04-15T02:03:11.432Z"
+      },
+      {
+        "id": 2,
+        "roleName": "仓库管理员",
+        "roleCode": "warehouse_admin",
+        "description": "仓库管理员，负责出入库和库存管理",
+        "status": 1,
+        "createdAt": "2026-04-15T02:03:11.432Z"
+      },
+      {
+        "id": 3,
+        "roleName": "销售人员",
+        "roleCode": "sales",
+        "description": "销售人员，负责销售出库",
+        "status": 1,
+        "createdAt": "2026-04-15T02:03:11.432Z"
+      },
+      {
+        "id": 4,
+        "roleName": "采购人员",
+        "roleCode": "purchaser",
+        "description": "采购人员，负责采购入库",
+        "status": 1,
+        "createdAt": "2026-04-15T02:03:11.432Z"
+      },
+      {
+        "id": 5,
+        "roleName": "财务人员",
+        "roleCode": "finance",
+        "description": "财务人员，负责报表查看",
+        "status": 1,
+        "createdAt": "2026-04-15T02:03:11.432Z"
+      }
+    ],
+    "operationLog": [
+      {
+        "id": 1776229663176,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T05:07:43.176Z"
+      },
+      {
+        "id": 1776229663460,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T05:07:43.460Z"
+      },
+      {
+        "id": 1776229713592,
+        "operatorId": "USR000001",
+        "operateType": "INSERT",
+        "operateContent": "新增商品[貌似还行]",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T05:08:33.592Z"
+      }
+    ],
+    "sequence": [
+      {
+        "prefix": "SP",
+        "currentValue": 1,
+        "dateValue": "20260415"
+      },
+      {
+        "prefix": "GYS",
+        "currentValue": 1,
+        "dateValue": "20260415"
+      },
+      {
+        "prefix": "KH",
+        "currentValue": 1,
+        "dateValue": "20260415"
+      },
+      {
+        "prefix": "RK",
+        "currentValue": 1,
+        "dateValue": "20260415"
+      },
+      {
+        "prefix": "CK",
+        "currentValue": 1,
+        "dateValue": "20260415"
+      },
+      {
+        "prefix": "PD",
+        "currentValue": 0,
+        "dateValue": ""
+      },
+      {
+        "prefix": "USR",
+        "currentValue": 0,
+        "dateValue": ""
+      }
+    ]
+  }
+}

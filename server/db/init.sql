@@ -1,0 +1,176 @@
+-- 进销存管理系统数据库初始化脚本
+
+CREATE TABLE IF NOT EXISTS category (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  pid INTEGER DEFAULT 0,
+  name VARCHAR(100) NOT NULL,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS product (
+  id VARCHAR(20) PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  spec VARCHAR(100),
+  unit VARCHAR(20) NOT NULL,
+  cost_price DECIMAL(10,2) NOT NULL,
+  sale_price DECIMAL(10,2) NOT NULL,
+  category_id INTEGER,
+  remark VARCHAR(500),
+  status TINYINT DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS supplier (
+  id VARCHAR(20) PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  contact VARCHAR(100),
+  phone VARCHAR(50),
+  address VARCHAR(500),
+  remark VARCHAR(500),
+  status TINYINT DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS customer (
+  id VARCHAR(20) PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  contact VARCHAR(100),
+  phone VARCHAR(50),
+  address VARCHAR(500),
+  remark VARCHAR(500),
+  status TINYINT DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id VARCHAR(20) NOT NULL UNIQUE,
+  quantity INT NOT NULL DEFAULT 0,
+  warning_min INT,
+  warning_max INT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS stock_in_order (
+  id VARCHAR(30) PRIMARY KEY,
+  supplier_id VARCHAR(20) NOT NULL,
+  in_time DATETIME NOT NULL,
+  operator_id VARCHAR(20) NOT NULL,
+  total_amount DECIMAL(12,2),
+  status TINYINT NOT NULL DEFAULT 0,
+  remark VARCHAR(500),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS stock_in_item (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id VARCHAR(30) NOT NULL,
+  product_id VARCHAR(20) NOT NULL,
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10,2) NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS stock_out_order (
+  id VARCHAR(30) PRIMARY KEY,
+  customer_id VARCHAR(20) NOT NULL,
+  out_time DATETIME NOT NULL,
+  operator_id VARCHAR(20) NOT NULL,
+  total_amount DECIMAL(12,2),
+  status TINYINT NOT NULL DEFAULT 0,
+  remark VARCHAR(500),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS stock_out_item (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id VARCHAR(30) NOT NULL,
+  product_id VARCHAR(20) NOT NULL,
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10,2) NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_no VARCHAR(30) NOT NULL,
+  order_type VARCHAR(20) NOT NULL,
+  operate_type VARCHAR(20) NOT NULL,
+  product_id VARCHAR(20) NOT NULL,
+  quantity_change INT NOT NULL,
+  inventory_before INT NOT NULL,
+  inventory_after INT NOT NULL,
+  operator_id VARCHAR(20) NOT NULL,
+  operate_time DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS check_order (
+  id VARCHAR(30) PRIMARY KEY,
+  check_date DATE NOT NULL,
+  operator_id VARCHAR(20) NOT NULL,
+  auditor_id VARCHAR(20),
+  auditor_time DATETIME,
+  status TINYINT NOT NULL DEFAULT 1,
+  remark VARCHAR(500),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS check_item (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id VARCHAR(30) NOT NULL,
+  product_id VARCHAR(20) NOT NULL,
+  system_qty INT NOT NULL,
+  actual_qty INT NOT NULL,
+  diff_qty INT NOT NULL,
+  status VARCHAR(10),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user (
+  id VARCHAR(20) PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  real_name VARCHAR(50) NOT NULL,
+  role_id INT NOT NULL,
+  phone VARCHAR(20),
+  email VARCHAR(100),
+  status TINYINT DEFAULT 1,
+  last_login DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS role (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  role_name VARCHAR(50) NOT NULL,
+  role_code VARCHAR(50) NOT NULL UNIQUE,
+  description VARCHAR(200),
+  status TINYINT DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS operation_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  operate_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  operator_id VARCHAR(20) NOT NULL,
+  operate_type VARCHAR(50) NOT NULL,
+  operate_content VARCHAR(500),
+  operate_result VARCHAR(20),
+  error_message VARCHAR(500)
+);
+
+CREATE TABLE IF NOT EXISTS sequence (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  prefix VARCHAR(20) NOT NULL UNIQUE,
+  current_value INT NOT NULL DEFAULT 0,
+  date_value VARCHAR(20),
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
