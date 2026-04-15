@@ -4,8 +4,20 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db, now } = require('../db/store');
 
-const SECRET = 'inventory-secret-2024';
-const TOKEN_EXPIRES = '8h';
+const SECRET='inventory-system-jwt-secret-2024';
+const TOKEN_EXPIRES='8h';
+
+// 下划线转驼峰
+function toCamel(obj) {
+  if (Array.isArray(obj)) return obj.map(toCamel);
+  if (obj === null || obj === undefined) return obj;
+  const result = {};
+  for (const [k, v] of Object.entries(obj)) {
+    const camel = k.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    result[camel] = v;
+  }
+  return result;
+}
 
 // 认证中间件
 function auth(req, res, next) {
@@ -58,7 +70,21 @@ router.get('/dashboard', auth, (req, res) => {
     todayInCount: todayIn.length, todayInAmount: todayIn.reduce((s, o) => s + (o.total_amount || 0), 0),
     todayOutCount: todayOut.length, todayOutAmount: todayOut.reduce((s, o) => s + (o.total_amount || 0), 0),
     totalProduct: db.count('product'), warningCount: warningItems.length,
-    recentWarning: warningItems.slice(0, 5).map(i => { const p = db.findOne('product', { id: i.product_id }); return { name: p?.name, quantity: i.quantity, warning_min: i.warning_min, warning_max: i.warning_max }; })
+    recentWarning: warningItems.slice(0, 5).map(i => { const p = db.findOne('product', { id: i.product_id }); return { name: p?.name, quantity: i.quantity, warningMin: i.warning_min, warningMax: i.warning_max }; })
+  }});
+});
+
+// ==================== 报表 ====================
+router.get('/reports/dashboard', auth, (req, res) => {
+  const today = now().slice(0, 10);
+  const todayIn = db.find('stock_in_order', { status: 1 }).filter(o => o.in_time?.slice(0, 10) === today);
+  const todayOut = db.find('stock_out_order', { status: 1 }).filter(o => o.out_time?.slice(0, 10) === today);
+  const warningItems = db.find('inventory').filter(i => (i.warning_min && i.quantity <= i.warning_min) || (i.warning_max && i.quantity >= i.warning_max));
+  res.json({ code: 200, data: {
+    todayInCount: todayIn.length, todayInAmount: todayIn.reduce((s, o) => s + (o.total_amount || 0), 0),
+    todayOutCount: todayOut.length, todayOutAmount: todayOut.reduce((s, o) => s + (o.total_amount || 0), 0),
+    totalProduct: db.count('product'), warningCount: warningItems.length,
+    recentWarning: warningItems.slice(0, 5).map(i => { const p = db.findOne('product', { id: i.product_id }); return { name: p?.name, quantity: i.quantity, warningMin: i.warning_min, warningMax: i.warning_max }; })
   }});
 });
 
@@ -94,12 +120,12 @@ router.get('/products', auth, (req, res) => {
   if (categoryId) list = list.filter(i => i.category_id == categoryId);
   const total = list.length;
   list = list.slice((page - 1) * pageSize, page * pageSize).map(i => ({ ...i, categoryName: db.findOne('category', { id: i.category_id })?.name }));
-  res.json({ code: 200, data: { list, total, page: parseInt(page), pageSize: parseInt(pageSize) } });
+  res.json({ code: 200, data: { list: toCamel(list), total, page: parseInt(page), pageSize: parseInt(pageSize) } });
 });
 router.get('/products/:id', auth, (req, res) => {
   const p = db.findOne('product', { id: req.params.id });
   if (!p) return res.json({ code: 404, message: '商品不存在' });
-  res.json({ code: 200, data: { ...p, categoryName: db.findOne('category', { id: p.category_id })?.name } });
+  res.json({ code: 200, data: toCamel({ ...p, categoryName: db.findOne('category', { id: p.category_id })?.name }) });
 });
 router.post('/products', auth, (req, res) => {
   const { name, spec, unit, costPrice, salePrice, categoryId, remark } = req.body;
@@ -461,9 +487,9 @@ router.get('/reports/stock/in', auth, (req, res) => {
       const items = db.find('stock_in_item', { order_id: o.id });
       items.forEach(i => { grouped[key].totalQuantity += i.quantity; });
     });
-    res.json({ code: 200, data: Object.values(grouped) });
+    res.json({ code: 200, data: toCamel(Object.values(grouped)) });
   } else {
-    res.json({ code: 200, data: orders.map(o => ({ ...o, supplierName: db.findOne('supplier', { id: o.supplier_id })?.name })) });
+    res.json({ code: 200, data: toCamel(orders.map(o => ({ ...o, supplierName: db.findOne('supplier', { id: o.supplier_id })?.name }))) });
   }
 });
 router.get('/reports/stock/out', auth, (req, res) => {
@@ -482,9 +508,9 @@ router.get('/reports/stock/out', auth, (req, res) => {
       const items = db.find('stock_out_item', { order_id: o.id });
       items.forEach(i => { grouped[key].totalQuantity += i.quantity; });
     });
-    res.json({ code: 200, data: Object.values(grouped) });
+    res.json({ code: 200, data: toCamel(Object.values(grouped)) });
   } else {
-    res.json({ code: 200, data: orders.map(o => ({ ...o, customerName: db.findOne('customer', { id: o.customer_id })?.name })) });
+    res.json({ code: 200, data: toCamel(orders.map(o => ({ ...o, customerName: db.findOne('customer', { id: o.customer_id })?.name }))) });
   }
 });
 router.get('/reports/profit', auth, (req, res) => {
@@ -503,7 +529,7 @@ router.get('/reports/inventory', auth, (req, res) => {
   const { categoryId } = req.query;
   let products = db.find('product');
   if (categoryId) products = products.filter(p => p.category_id == categoryId);
-  const data = products.map(p => { const inv = db.findOne('inventory', { product_id: p.id }); return { id: p.id, name: p.name, spec: p.spec, unit: p.unit, cost_price: p.cost_price, sale_price: p.sale_price, quantity: inv?.quantity || 0, categoryName: db.findOne('category', { id: p.category_id })?.name, costAmount: (inv?.quantity || 0) * p.cost_price, saleAmount: (inv?.quantity || 0) * p.sale_price }; });
+  const data = products.map(p => { const inv = db.findOne('inventory', { product_id: p.id }); return { id: p.id, name: p.name, spec: p.spec, unit: p.unit, costPrice: p.cost_price, salePrice: p.sale_price, quantity: inv?.quantity || 0, categoryName: db.findOne('category', { id: p.category_id })?.name, costAmount: (inv?.quantity || 0) * p.cost_price, saleAmount: (inv?.quantity || 0) * p.sale_price }; });
   res.json({ code: 200, data });
 });
 router.get('/reports/warning', auth, (req, res) => {
@@ -511,9 +537,83 @@ router.get('/reports/warning', auth, (req, res) => {
   let items = db.find('inventory').filter(i => (i.warning_min && i.quantity <= i.warning_min) || (i.warning_max && i.quantity >= i.warning_max));
   if (type === 'low') items = items.filter(i => i.warning_min && i.quantity <= i.warning_min);
   else if (type === 'high') items = items.filter(i => i.warning_max && i.quantity >= i.warning_max);
-  const data = items.map(i => { const p = db.findOne('product', { id: i.product_id }); return { name: p?.name, spec: p?.spec, quantity: i.quantity, warning_min: i.warning_min, warning_max: i.warning_max }; });
+  const data = items.map(i => { const p = db.findOne('product', { id: i.product_id }); return { name: p?.name, spec: p?.spec, quantity: i.quantity, warningMin: i.warning_min, warningMax: i.warning_max }; });
   res.json({ code: 200, data });
 });
+
+// POST 报表接口（与GET参数一致）
+router.post('/reports/stock/in', auth, (req, res) => {
+  const { startDate, endDate, supplierId, groupBy = 'supplier' } = req.body;
+  let orders = db.find('stock_in_order').filter(o => o.status === 1);
+  if (startDate) orders = orders.filter(o => o.in_time >= startDate);
+  if (endDate) orders = orders.filter(o => o.in_time <= endDate + ' 23:59:59');
+  if (supplierId) orders = orders.filter(o => o.supplier_id === supplierId);
+  if (groupBy === 'supplier') {
+    const grouped = {};
+    orders.forEach(o => {
+      const key = o.supplier_id;
+      if (!grouped[key]) { const s = db.findOne('supplier', { id: key }); grouped[key] = { name: s?.name, orderCount: 0, totalAmount: 0, totalQuantity: 0 }; }
+      grouped[key].orderCount++;
+      grouped[key].totalAmount += o.total_amount || 0;
+      const items = db.find('stock_in_item', { order_id: o.id });
+      items.forEach(i => { grouped[key].totalQuantity += i.quantity; });
+    });
+    res.json({ code: 200, data: toCamel(Object.values(grouped)) });
+  } else {
+    res.json({ code: 200, data: toCamel(orders.map(o => ({ ...o, supplierName: db.findOne('supplier', { id: o.supplier_id })?.name }))) });
+  }
+});
+router.post('/reports/stock/out', auth, (req, res) => {
+  const { startDate, endDate, customerId, groupBy = 'customer' } = req.body;
+  let orders = db.find('stock_out_order').filter(o => o.status === 1);
+  if (startDate) orders = orders.filter(o => o.out_time >= startDate);
+  if (endDate) orders = orders.filter(o => o.out_time <= endDate + ' 23:59:59');
+  if (customerId) orders = orders.filter(o => o.customer_id === customerId);
+  if (groupBy === 'customer') {
+    const grouped = {};
+    orders.forEach(o => {
+      const key = o.customer_id;
+      if (!grouped[key]) { const c = db.findOne('customer', { id: key }); grouped[key] = { name: c?.name, orderCount: 0, totalAmount: 0, totalQuantity: 0 }; }
+      grouped[key].orderCount++;
+      grouped[key].totalAmount += o.total_amount || 0;
+      const items = db.find('stock_out_item', { order_id: o.id });
+      items.forEach(i => { grouped[key].totalQuantity += i.quantity; });
+    });
+    res.json({ code: 200, data: toCamel(Object.values(grouped)) });
+  } else {
+    res.json({ code: 200, data: toCamel(orders.map(o => ({ ...o, customerName: db.findOne('customer', { id: o.customer_id })?.name }))) });
+  }
+});
+router.post('/reports/profit', auth, (req, res) => {
+  const { startDate, endDate } = req.body;
+  if (!startDate || !endDate) return res.json({ code: 400, message: '请选择时间范围' });
+  let salesAmount = 0, costAmount = 0;
+  const orders = db.find('stock_out_order').filter(o => o.status === 1 && o.out_time >= startDate && o.out_time <= endDate + ' 23:59:59');
+  orders.forEach(o => {
+    const items = db.find('stock_out_item', { order_id: o.id });
+    items.forEach(i => { salesAmount += i.quantity * i.unit_price; const p = db.findOne('product', { id: i.product_id }); costAmount += i.quantity * (p?.cost_price || 0); });
+  });
+  const profit = salesAmount - costAmount;
+  res.json({ code: 200, data: { salesAmount, costAmount, profit, profitRate: salesAmount > 0 ? (profit / salesAmount * 100).toFixed(2) : 0 } });
+});
+router.post('/reports/inventory', auth, (req, res) => {
+  const { categoryId } = req.body;
+  let products = db.find('product');
+  if (categoryId) products = products.filter(p => p.category_id == categoryId);
+  const data = products.map(p => { const inv = db.findOne('inventory', { product_id: p.id }); return { id: p.id, name: p.name, spec: p.spec, unit: p.unit, costPrice: p.cost_price, salePrice: p.sale_price, quantity: inv?.quantity || 0, categoryName: db.findOne('category', { id: p.category_id })?.name, costAmount: (inv?.quantity || 0) * p.cost_price, saleAmount: (inv?.quantity || 0) * p.sale_price }; });
+  res.json({ code: 200, data });
+});
+router.post('/reports/warning', auth, (req, res) => {
+  const { type } = req.body;
+  let items = db.find('inventory').filter(i => (i.warning_min && i.quantity <= i.warning_min) || (i.warning_max && i.quantity >= i.warning_max));
+  if (type === 'low') items = items.filter(i => i.warning_min && i.quantity <= i.warning_min);
+  else if (type === 'high') items = items.filter(i => i.warning_max && i.quantity >= i.warning_max);
+  const data = items.map(i => { const p = db.findOne('product', { id: i.product_id }); return { name: p?.name, spec: p?.spec, quantity: i.quantity, warningMin: i.warning_min, warningMax: i.warning_max }; });
+  res.json({ code: 200, data });
+});
+
+// GET /roles 快捷接口
+router.get('/roles', auth, (req, res) => { res.json({ code: 200, data: toCamel(db.find('role')) }); });
 
 // ==================== 用户 ====================
 router.get('/users', auth, (req, res) => {
@@ -523,7 +623,7 @@ router.get('/users', auth, (req, res) => {
   if (roleId) list = list.filter(i => i.role_id == roleId);
   const total = list.length;
   list = list.slice((page - 1) * pageSize, page * pageSize).map(i => ({ ...i, roleName: db.findOne('role', { id: i.role_id })?.role_name }));
-  res.json({ code: 200, data: { list, total, page: parseInt(page), pageSize: parseInt(pageSize) } });
+  res.json({ code: 200, data: { list: toCamel(list), total, page: parseInt(page), pageSize: parseInt(pageSize) } });
 });
 router.post('/users', auth, (req, res) => {
   const { username, realName, roleId, phone, email, password } = req.body;
@@ -536,7 +636,7 @@ router.post('/users', auth, (req, res) => {
 router.put('/users/:id', auth, (req, res) => { db.update('user', { id: req.params.id }, { username: req.body.username, real_name: req.body.realName, role_id: req.body.roleId, phone: req.body.phone || '', email: req.body.email || '', status: req.body.status !== undefined ? req.body.status : 1 }); res.json({ code: 200, message: '更新成功' }); });
 router.put('/users/:id/password', auth, (req, res) => { db.update('user', { id: req.params.id }, { password: bcrypt.hashSync(req.body.password, 10) }); res.json({ code: 200, message: '密码重置成功' }); });
 router.delete('/users/:id', auth, (req, res) => { if (req.params.id === req.user.id) return res.json({ code: 400, message: '不能删除当前用户' }); db.delete('user', { id: req.params.id }); res.json({ code: 200, message: '删除成功' }); });
-router.get('/users/roles', auth, (req, res) => { res.json({ code: 200, data: db.find('role') }); });
+router.get('/users/roles', auth, (req, res) => { res.json({ code: 200, data: toCamel(db.find('role')) }); });
 
 // ==================== 系统 ====================
 router.get('/system/logs', auth, (req, res) => {

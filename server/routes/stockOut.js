@@ -9,7 +9,7 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     const { keyword, customerId, status, startDate, endDate, page = 1, pageSize = 20 } = req.query;
-    let list = db.data.tables.stockOutOrder;
+    let list = db.data.tables.stock_out_order;
     if (keyword) list = list.filter(o => o.id.includes(keyword) || (o.remark && o.remark.includes(keyword)));
     if (customerId) list = list.filter(o => o.customerId === customerId);
     if (status !== undefined && status !== '') list = list.filter(o => o.status === parseInt(status));
@@ -27,11 +27,11 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const order = db.data.tables.stockOutOrder.find(o => o.id === req.params.id);
+    const order = db.data.tables.stock_out_order.find(o => o.id === req.params.id);
     if (!order) return res.json({ code: 404, message: '出库单不存在' });
     const customer = db.data.tables.customer.find(c => c.id === order.customerId);
     const operator = db.data.tables.user.find(u => u.id === order.operatorId);
-    const items = db.data.tables.stockOutItem.filter(i => i.orderId === req.params.id).map(i => { const p = db.data.tables.product.find(p => p.id === i.productId); return { ...i, productName: p?.name, spec: p?.spec, unit: p?.unit }; });
+    const items = db.data.tables.stock_out_item.filter(i => i.orderId === req.params.id).map(i => { const p = db.data.tables.product.find(p => p.id === i.productId); return { ...i, productName: p?.name, spec: p?.spec, unit: p?.unit }; });
     res.json({ code: 200, data: { ...order, customerName: customer?.name, operatorName: operator?.realName, items } });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });
@@ -43,8 +43,8 @@ router.post('/', async (req, res) => {
     if (!items || items.length === 0) return res.json({ code: 400, message: '请添加商品' });
     const orderId = generateSequence('CK');
     const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    db.data.tables.stockOutOrder.push({ id: orderId, customerId, outTime: outTime || new Date().toISOString(), operatorId: req.user.id, totalAmount, status: 0, remark: remark || '', createdAt: new Date().toISOString(), updatedAt: null });
-    items.forEach(item => { db.data.tables.stockOutItem.push({ id: Date.now() + Math.random(), orderId, productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, amount: item.quantity * item.unitPrice, createdAt: new Date().toISOString() }); });
+    db.data.tables.stock_out_order.push({ id: orderId, customerId, outTime: outTime || new Date().toISOString(), operatorId: req.user.id, totalAmount, status: 0, remark: remark || '', createdAt: new Date().toISOString(), updatedAt: null });
+    items.forEach(item => { db.data.tables.stock_out_item.push({ id: Date.now() + Math.random(), orderId, productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, amount: item.quantity * item.unitPrice, createdAt: new Date().toISOString() }); });
     await db.write();
     res.json({ code: 200, message: '出库单创建成功', data: { id: orderId } });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
@@ -52,14 +52,14 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const order = db.data.tables.stockOutOrder.find(o => o.id === req.params.id);
+    const order = db.data.tables.stock_out_order.find(o => o.id === req.params.id);
     if (!order) return res.json({ code: 404, message: '出库单不存在' });
     if (order.status !== 0) return res.json({ code: 400, message: '只能编辑草稿状态的单据' });
     const { customerId, outTime, items, remark } = req.body;
     const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     order.customerId = customerId; order.outTime = outTime || order.outTime; order.totalAmount = totalAmount; order.remark = remark || '';
-    db.data.tables.stockOutItem = db.data.tables.stockOutItem.filter(i => i.orderId !== req.params.id);
-    items.forEach(item => { db.data.tables.stockOutItem.push({ id: Date.now() + Math.random(), orderId: req.params.id, productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, amount: item.quantity * item.unitPrice, createdAt: new Date().toISOString() }); });
+    db.data.tables.stock_out_item = db.data.tables.stock_out_item.filter(i => i.orderId !== req.params.id);
+    items.forEach(item => { db.data.tables.stock_out_item.push({ id: Date.now() + Math.random(), orderId: req.params.id, productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, amount: item.quantity * item.unitPrice, createdAt: new Date().toISOString() }); });
     await db.write();
     res.json({ code: 200, message: '出库单更新成功' });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
@@ -67,10 +67,10 @@ router.put('/:id', async (req, res) => {
 
 router.post('/:id/submit', async (req, res) => {
   try {
-    const order = db.data.tables.stockOutOrder.find(o => o.id === req.params.id);
+    const order = db.data.tables.stock_out_order.find(o => o.id === req.params.id);
     if (!order) return res.json({ code: 404, message: '出库单不存在' });
     if (order.status !== 0) return res.json({ code: 400, message: '只能提交草稿状态的单据' });
-    const items = db.data.tables.stockOutItem.filter(i => i.orderId === req.params.id);
+    const items = db.data.tables.stock_out_item.filter(i => i.orderId === req.params.id);
     // 库存校验
     for (const item of items) {
       let inv = db.data.tables.inventory.find(i => i.productId === item.productId);
@@ -80,7 +80,7 @@ router.post('/:id/submit', async (req, res) => {
         return res.json({ code: 400, message: `商品[${product?.name || item.productId}]库存不足，当前库存：${currentQty}，需要：${item.quantity}` });
       }
     }
-    db.data.tables.inventoryLog.push(...items.map(item => {
+    db.data.tables.inventory_log.push(...items.map(item => {
       let inv = db.data.tables.inventory.find(i => i.productId === item.productId);
       const beforeQty = inv ? inv.quantity : 0;
       const afterQty = beforeQty - item.quantity;
@@ -95,11 +95,11 @@ router.post('/:id/submit', async (req, res) => {
 
 router.post('/:id/cancel', async (req, res) => {
   try {
-    const order = db.data.tables.stockOutOrder.find(o => o.id === req.params.id);
+    const order = db.data.tables.stock_out_order.find(o => o.id === req.params.id);
     if (!order) return res.json({ code: 404, message: '出库单不存在' });
     if (order.status !== 1) return res.json({ code: 400, message: '只能作废已提交的单据' });
-    const items = db.data.tables.stockOutItem.filter(i => i.orderId === req.params.id);
-    db.data.tables.inventoryLog.push(...items.map(item => {
+    const items = db.data.tables.stock_out_item.filter(i => i.orderId === req.params.id);
+    db.data.tables.inventory_log.push(...items.map(item => {
       let inv = db.data.tables.inventory.find(i => i.productId === item.productId);
       const beforeQty = inv ? inv.quantity : 0;
       const afterQty = beforeQty + item.quantity;
@@ -114,11 +114,11 @@ router.post('/:id/cancel', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const order = db.data.tables.stockOutOrder.find(o => o.id === req.params.id);
+    const order = db.data.tables.stock_out_order.find(o => o.id === req.params.id);
     if (!order) return res.json({ code: 404, message: '出库单不存在' });
     if (order.status !== 0) return res.json({ code: 400, message: '只能删除草稿状态的单据' });
-    db.data.tables.stockOutOrder = db.data.tables.stockOutOrder.filter(o => o.id !== req.params.id);
-    db.data.tables.stockOutItem = db.data.tables.stockOutItem.filter(i => i.orderId !== req.params.id);
+    db.data.tables.stock_out_order = db.data.tables.stock_out_order.filter(o => o.id !== req.params.id);
+    db.data.tables.stock_out_item = db.data.tables.stock_out_item.filter(i => i.orderId !== req.params.id);
     await db.write();
     res.json({ code: 200, message: '删除成功' });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }

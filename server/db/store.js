@@ -63,4 +63,7 @@ const db = {
   save, data
 };
 
+// 自动加载数据
+load();
+
 module.exports = { db, load, now };

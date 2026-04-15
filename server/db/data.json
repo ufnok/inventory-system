@@ -1,8 +1,8 @@
 {
   "sequence": {
     "SP": {
-      "v": 0,
-      "d": ""
+      "v": 1,
+      "d": "20260415"
     },
     "GYS": {
       "v": 0,
@@ -81,15 +81,36 @@
       "phone": "",
       "email": "",
       "status": 1,
-      "last_login": null,
-      "created_at": "2026-04-15T01:15:37.497Z"
+      "last_login": "2026-04-15T08:16:33.450Z",
+      "created_at": "2026-04-15T01:15:37.497Z",
+      "updated_at": "2026-04-15T08:16:33.450Z"
     }
   ],
   "category": [],
-  "product": [],
+  "product": [
+    {
+      "id": "SP000001",
+      "name": "测试商品",
+      "spec": "规格A",
+      "unit": "个",
+      "cost_price": 10,
+      "sale_price": 20,
+      "category_id": null,
+      "remark": "测试",
+      "status": 1,
+      "created_at": "2026-04-15T07:23:27.636Z"
+    }
+  ],
   "supplier": [],
   "customer": [],
-  "inventory": [],
+  "inventory": [
+    {
+      "product_id": "SP000001",
+      "quantity": 0,
+      "warning_min": null,
+      "warning_max": null
+    }
+  ],
   "stock_in_order": [],
   "stock_in_item": [],
   "stock_out_order": [],
@@ -97,7 +118,99 @@
   "inventory_log": [],
   "check_order": [],
   "check_item": [],
-  "operation_log": [],
+  "operation_log": [
+    {
+      "operate_time": "2026-04-15T07:22:15.236Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T07:22:16.407Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T07:23:16.322Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T07:23:17.061Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T07:23:27.583Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T07:23:41.921Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T07:23:58.859Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T08:04:26.881Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T08:04:42.936Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T08:05:12.721Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T08:07:24.783Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T08:16:33.378Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    },
+    {
+      "operate_time": "2026-04-15T08:16:33.450Z",
+      "operator_id": "USR000001",
+      "operate_type": "LOGIN",
+      "operate_content": "用户登录",
+      "operate_result": "SUCCESS"
+    }
+  ],
   "tables": {
     "category": [
       {
@@ -111,29 +224,24 @@
     "product": [
       {
         "id": "SP000001",
-        "name": "貌似还行",
         "spec": "",
-        "unit": "123",
-        "costPrice": 1,
-        "salePrice": 1,
-        "categoryId": 1776229693619,
+        "categoryId": null,
         "remark": "",
         "status": 1,
         "createdAt": "2026-04-15T05:08:33.592Z",
-        "updatedAt": null
+        "updatedAt": "2026-04-15T06:11:25.344Z"
       }
     ],
     "supplier": [
       {
         "id": "GYS000001",
-        "name": "供应商1",
-        "contact": "1",
-        "phone": "1",
-        "address": "1",
-        "remark": "12",
+        "contact": "",
+        "phone": "",
+        "address": "",
+        "remark": "",
         "status": 1,
         "createdAt": "2026-04-15T05:08:49.097Z",
-        "updatedAt": null
+        "updatedAt": "2026-04-15T06:11:25.350Z"
       }
     ],
     "customer": [
@@ -211,7 +319,7 @@
         "phone": "",
         "email": "",
         "status": 1,
-        "lastLogin": "2026-04-15T05:07:43.459Z",
+        "lastLogin": "2026-04-15T06:13:33.744Z",
         "createdAt": "2026-04-15T02:03:11.517Z"
       }
     ],
@@ -281,6 +389,62 @@
         "operateContent": "新增商品[貌似还行]",
         "operateResult": "SUCCESS",
         "operateTime": "2026-04-15T05:08:33.592Z"
+      },
+      {
+        "id": 1776233352562,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:09:12.562Z"
+      },
+      {
+        "id": 1776233485196,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:11:25.196Z"
+      },
+      {
+        "id": 1776233485269,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:11:25.269Z"
+      },
+      {
+        "id": 1776233496232,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:11:36.232Z"
+      },
+      {
+        "id": 1776233496314,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:11:36.314Z"
+      },
+      {
+        "id": 1776233496403,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:11:36.403Z"
+      },
+      {
+        "id": 1776233613746,
+        "operatorId": "USR000001",
+        "operateType": "LOGIN",
+        "operateContent": "用户登录系统",
+        "operateResult": "SUCCESS",
+        "operateTime": "2026-04-15T06:13:33.746Z"
       }
     ],
     "sequence": [

@@ -1,25 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db/database');
+const { db } = require('../db/store');
 const { authMiddleware } = require('../middleware/auth');
-const { generateSequence } = require('../utils/sequence');
 
 router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
   try {
     const { keyword, supplierId, status, startDate, endDate, page = 1, pageSize = 20 } = req.query;
-    let list = db.data.tables.stockInOrder;
-    if (keyword) list = list.filter(o => o.id.includes(keyword) || (o.remark && o.remark.includes(keyword)));
-    if (supplierId) list = list.filter(o => o.supplierId === supplierId);
+    let list = db.find('stock_in_order');
+    if (keyword) list = list.filter(o => (o.id + (o.remark || '')).includes(keyword));
+    if (supplierId) list = list.filter(o => o.supplier_id === supplierId);
     if (status !== undefined && status !== '') list = list.filter(o => o.status === parseInt(status));
-    if (startDate) list = list.filter(o => o.inTime >= startDate);
-    if (endDate) list = list.filter(o => o.inTime <= endDate + ' 23:59:59');
+    if (startDate) list = list.filter(o => o.in_time >= startDate);
+    if (endDate) list = list.filter(o => o.in_time <= endDate + ' 23:59:59');
     const total = list.length;
     list = list.slice((page - 1) * pageSize, page * pageSize).map(o => {
-      const supplier = db.data.tables.supplier.find(s => s.id === o.supplierId);
-      const operator = db.data.tables.user.find(u => u.id === o.operatorId);
-      return { ...o, supplierName: supplier?.name, operatorName: operator?.realName, statusName: o.status === 1 ? '正常' : o.status === -1 ? '作废' : '草稿' };
+      const supplier = db.findOne('supplier', { id: o.supplier_id });
+      const operator = db.findOne('user', { id: o.operator_id });
+      return { ...o, supplier_name: supplier?.name, operator_name: operator?.real_name, status_name: o.status === 1 ? '正常' : o.status === -1 ? '作废' : '草稿' };
     });
     res.json({ code: 200, data: { list, total, page: parseInt(page), pageSize: parseInt(pageSize) } });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
@@ -27,12 +26,12 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const order = db.data.tables.stockInOrder.find(o => o.id === req.params.id);
+    const order = db.findOne('stock_in_order', { id: req.params.id });
     if (!order) return res.json({ code: 404, message: '入库单不存在' });
-    const supplier = db.data.tables.supplier.find(s => s.id === order.supplierId);
-    const operator = db.data.tables.user.find(u => u.id === order.operatorId);
-    const items = db.data.tables.stockInItem.filter(i => i.orderId === req.params.id).map(i => { const p = db.data.tables.product.find(p => p.id === i.productId); return { ...i, productName: p?.name, spec: p?.spec, unit: p?.unit }; });
-    res.json({ code: 200, data: { ...order, supplierName: supplier?.name, operatorName: operator?.realName, items } });
+    const supplier = db.findOne('supplier', { id: order.supplier_id });
+    const operator = db.findOne('user', { id: order.operator_id });
+    const items = db.find('stock_in_item', { order_id: req.params.id }).map(i => { const p = db.findOne('product', { id: i.product_id }); return { ...i, product_name: p?.name, spec: p?.spec, unit: p?.unit }; });
+    res.json({ code: 200, data: { ...order, supplier_name: supplier?.name, operator_name: operator?.real_name, items } });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });
 
@@ -41,76 +40,71 @@ router.post('/', async (req, res) => {
     const { supplierId, inTime, items, remark } = req.body;
     if (!supplierId) return res.json({ code: 400, message: '请选择供应商' });
     if (!items || items.length === 0) return res.json({ code: 400, message: '请添加商品' });
-    const orderId = generateSequence('RK');
+    const id = db.nextId('RK');
     const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    db.data.tables.stockInOrder.push({ id: orderId, supplierId, inTime: inTime || new Date().toISOString(), operatorId: req.user.id, totalAmount, status: 0, remark: remark || '', createdAt: new Date().toISOString(), updatedAt: null });
-    items.forEach(item => { db.data.tables.stockInItem.push({ id: Date.now() + Math.random(), orderId, productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, amount: item.quantity * item.unitPrice, createdAt: new Date().toISOString() }); });
-    await db.write();
-    res.json({ code: 200, message: '入库单创建成功', data: { id: orderId } });
+    db.insert('stock_in_order', { id, supplier_id: supplierId, in_time: inTime || new Date().toISOString(), operator_id: req.user.id, total_amount: totalAmount, status: 0, remark: remark || '', created_at: new Date().toISOString() });
+    items.forEach(item => { db.insert('stock_in_item', { order_id: id, product_id: item.productId, quantity: item.quantity, unit_price: item.unitPrice, amount: item.quantity * item.unitPrice }); });
+    res.json({ code: 200, message: '入库单创建成功', data: { id } });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });
 
 router.put('/:id', async (req, res) => {
   try {
-    const order = db.data.tables.stockInOrder.find(o => o.id === req.params.id);
+    const order = db.findOne('stock_in_order', { id: req.params.id });
     if (!order) return res.json({ code: 404, message: '入库单不存在' });
     if (order.status !== 0) return res.json({ code: 400, message: '只能编辑草稿状态的单据' });
     const { supplierId, inTime, items, remark } = req.body;
     const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    order.supplierId = supplierId; order.inTime = inTime || order.inTime; order.totalAmount = totalAmount; order.remark = remark || '';
-    db.data.tables.stockInItem = db.data.tables.stockInItem.filter(i => i.orderId !== req.params.id);
-    items.forEach(item => { db.data.tables.stockInItem.push({ id: Date.now() + Math.random(), orderId: req.params.id, productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, amount: item.quantity * item.unitPrice, createdAt: new Date().toISOString() }); });
-    await db.write();
+    db.update('stock_in_order', { id: req.params.id }, { supplier_id: supplierId, in_time: inTime, total_amount: totalAmount, remark: remark || '' });
+    db.delete('stock_in_item', { order_id: req.params.id });
+    items.forEach(item => { db.insert('stock_in_item', { order_id: req.params.id, product_id: item.productId, quantity: item.quantity, unit_price: item.unitPrice, amount: item.quantity * item.unitPrice }); });
     res.json({ code: 200, message: '入库单更新成功' });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });
 
 router.post('/:id/submit', async (req, res) => {
   try {
-    const order = db.data.tables.stockInOrder.find(o => o.id === req.params.id);
+    const order = db.findOne('stock_in_order', { id: req.params.id });
     if (!order) return res.json({ code: 404, message: '入库单不存在' });
     if (order.status !== 0) return res.json({ code: 400, message: '只能提交草稿状态的单据' });
-    const items = db.data.tables.stockInItem.filter(i => i.orderId === req.params.id);
-    db.data.tables.inventoryLog.push(...items.map(item => {
-      let inv = db.data.tables.inventory.find(i => i.productId === item.productId);
+    const items = db.find('stock_in_item', { order_id: req.params.id });
+    items.forEach(item => {
+      let inv = db.findOne('inventory', { product_id: item.product_id });
       const beforeQty = inv ? inv.quantity : 0;
       const afterQty = beforeQty + item.quantity;
-      if (inv) inv.quantity = afterQty; else db.data.tables.inventory.push({ productId: item.productId, quantity: afterQty, warningMin: null, warningMax: null });
-      return { id: Date.now(), orderNo: req.params.id, orderType: 'RK', operateType: 'IN', productId: item.productId, quantityChange: item.quantity, inventoryBefore: beforeQty, inventoryAfter: afterQty, operatorId: req.user.id, operateTime: new Date().toISOString() };
-    }));
-    order.status = 1; order.updatedAt = new Date().toISOString();
-    await db.write();
+      if (inv) { db.update('inventory', { product_id: item.product_id }, { quantity: afterQty }); } else { db.insert('inventory', { product_id: item.product_id, quantity: afterQty, warning_min: null, warning_max: null }); }
+      db.insert('inventory_log', { order_no: req.params.id, order_type: 'RK', operate_type: 'IN', product_id: item.product_id, quantity_change: item.quantity, inventory_before: beforeQty, inventory_after: afterQty, operator_id: req.user.id, operate_time: new Date().toISOString() });
+    });
+    db.update('stock_in_order', { id: req.params.id }, { status: 1 });
     res.json({ code: 200, message: '入库单提交成功，库存已增加' });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });
 
 router.post('/:id/cancel', async (req, res) => {
   try {
-    const order = db.data.tables.stockInOrder.find(o => o.id === req.params.id);
+    const order = db.findOne('stock_in_order', { id: req.params.id });
     if (!order) return res.json({ code: 404, message: '入库单不存在' });
     if (order.status !== 1) return res.json({ code: 400, message: '只能作废已提交的单据' });
-    const items = db.data.tables.stockInItem.filter(i => i.orderId === req.params.id);
-    db.data.tables.inventoryLog.push(...items.map(item => {
-      let inv = db.data.tables.inventory.find(i => i.productId === item.productId);
+    const items = db.find('stock_in_item', { order_id: req.params.id });
+    items.forEach(item => {
+      let inv = db.findOne('inventory', { product_id: item.product_id });
       const beforeQty = inv ? inv.quantity : 0;
       const afterQty = Math.max(0, beforeQty - item.quantity);
-      if (inv) inv.quantity = afterQty;
-      return { id: Date.now(), orderNo: req.params.id, orderType: 'RK', operateType: 'OUT', productId: item.productId, quantityChange: -item.quantity, inventoryBefore: beforeQty, inventoryAfter: afterQty, operatorId: req.user.id, operateTime: new Date().toISOString() };
-    }));
-    order.status = -1; order.updatedAt = new Date().toISOString();
-    await db.write();
+      if (inv) { db.update('inventory', { product_id: item.product_id }, { quantity: afterQty }); }
+      db.insert('inventory_log', { order_no: req.params.id, order_type: 'RK', operate_type: 'OUT', product_id: item.product_id, quantity_change: -item.quantity, inventory_before: beforeQty, inventory_after: afterQty, operator_id: req.user.id, operate_time: new Date().toISOString() });
+    });
+    db.update('stock_in_order', { id: req.params.id }, { status: -1 });
     res.json({ code: 200, message: '入库单已作废，库存已回滚' });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });
 
 router.delete('/:id', async (req, res) => {
   try {
-    const order = db.data.tables.stockInOrder.find(o => o.id === req.params.id);
+    const order = db.findOne('stock_in_order', { id: req.params.id });
     if (!order) return res.json({ code: 404, message: '入库单不存在' });
     if (order.status !== 0) return res.json({ code: 400, message: '只能删除草稿状态的单据' });
-    db.data.tables.stockInOrder = db.data.tables.stockInOrder.filter(o => o.id !== req.params.id);
-    db.data.tables.stockInItem = db.data.tables.stockInItem.filter(i => i.orderId !== req.params.id);
-    await db.write();
+    db.delete('stock_in_item', { order_id: req.params.id });
+    db.delete('stock_in_order', { id: req.params.id });
     res.json({ code: 200, message: '删除成功' });
   } catch (e) { res.json({ code: 500, message: '服务器错误' }); }
 });

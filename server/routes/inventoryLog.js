@@ -8,7 +8,7 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     const { startDate, endDate, orderType, productId, page = 1, pageSize = 20 } = req.query;
-    let list = db.data.tables.inventoryLog;
+    let list = db.data.tables.inventory_log;
     if (startDate) list = list.filter(l => l.operateTime >= startDate);
     if (endDate) list = list.filter(l => l.operateTime <= endDate + ' 23:59:59');
     if (orderType) list = list.filter(l => l.orderType === orderType);

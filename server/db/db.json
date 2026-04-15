@@ -1,0 +1,108 @@
+{
+  "category": [],
+  "product": [],
+  "supplier": [],
+  "customer": [],
+  "inventory": [],
+  "stock_in_order": [],
+  "stock_in_item": [],
+  "stock_out_order": [],
+  "stock_out_item": [],
+  "inventory_log": [],
+  "check_order": [],
+  "check_item": [],
+  "user": [
+    {
+      "id": "USR000001",
+      "username": "admin",
+      "password": "$2a$10$NKpG4wluN5f59zmQQk/qmOg2eC3dRqt0ZSZ5appFuZACWq/Dw2b7u",
+      "real_name": "系统管理员",
+      "role_id": 1,
+      "phone": "",
+      "email": "",
+      "status": 1,
+      "last_login": null,
+      "created_at": "2026-04-15T06:09:04.991Z"
+    }
+  ],
+  "role": [
+    {
+      "id": 1,
+      "role_name": "管理员",
+      "role_code": "admin",
+      "description": "系统管理员",
+      "status": 1,
+      "created_at": "2026-04-15T06:09:04.920Z"
+    },
+    {
+      "id": 2,
+      "role_name": "仓库管理员",
+      "role_code": "warehouse_admin",
+      "description": "仓库管理员",
+      "status": 1,
+      "created_at": "2026-04-15T06:09:04.920Z"
+    },
+    {
+      "id": 3,
+      "role_name": "销售人员",
+      "role_code": "sales",
+      "description": "销售人员",
+      "status": 1,
+      "created_at": "2026-04-15T06:09:04.920Z"
+    },
+    {
+      "id": 4,
+      "role_name": "采购人员",
+      "role_code": "purchaser",
+      "description": "采购人员",
+      "status": 1,
+      "created_at": "2026-04-15T06:09:04.920Z"
+    },
+    {
+      "id": 5,
+      "role_name": "财务人员",
+      "role_code": "finance",
+      "description": "财务人员",
+      "status": 1,
+      "created_at": "2026-04-15T06:09:04.920Z"
+    }
+  ],
+  "operation_log": [],
+  "sequence": [
+    {
+      "prefix": "SP",
+      "current_value": 0,
+      "date_value": ""
+    },
+    {
+      "prefix": "GYS",
+      "current_value": 0,
+      "date_value": ""
+    },
+    {
+      "prefix": "KH",
+      "current_value": 0,
+      "date_value": ""
+    },
+    {
+      "prefix": "RK",
+      "current_value": 0,
+      "date_value": ""
+    },
+    {
+      "prefix": "CK",
+      "current_value": 0,
+      "date_value": ""
+    },
+    {
+      "prefix": "PD",
+      "current_value": 0,
+      "date_value": ""
+    },
+    {
+      "prefix": "USR",
+      "current_value": 0,
+      "date_value": ""
+    }
+  ]
+}

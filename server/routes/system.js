@@ -10,7 +10,7 @@ router.use(authMiddleware);
 router.get('/logs', async (req, res) => {
   try {
     const { startDate, endDate, operateType, page = 1, pageSize = 20 } = req.query;
-    let list = db.data.tables.operationLog;
+    let list = db.data.tables.operation_log;
     if (startDate) list = list.filter(l => l.operateTime >= startDate);
     if (endDate) list = list.filter(l => l.operateTime <= endDate + ' 23:59:59');
     if (operateType) list = list.filter(l => l.operateType === operateType);
